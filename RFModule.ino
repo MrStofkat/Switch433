@@ -6,7 +6,7 @@
 bool isMappingSignal=true;
 long storedAddress =0;
 int storedUnit=0;
-
+bool rf_module_is_running =false;
 
 void rf_module_start(){
   
@@ -16,17 +16,19 @@ void rf_module_start(){
     //
     // See the interrupt-parameter of attachInterrupt for possible values (and pins)
     // to connect the receiver.
-    NewRemoteReceiver::init(0, 3, gotKlikAanKlikUitCode);
+    NewRemoteReceiver::init(4, 3, gotKlikAanKlikUitCode);
     RemoteReceiver::init(1, 3, gotUniversalCode);
     pinMode(LED_BUILTIN, OUTPUT);
     
     storedAddress = EEPROMReadLong(0);
     storedUnit = EEPROM.read(4);
-    
+    Serial.println();
     if(storedAddress>0){
       Serial.println("Got stored address");
       Serial.println(storedAddress);
       isMappingSignal=false;
+    }else {
+      Serial.println("Aint got stored address");
     }
 } 
 
@@ -63,11 +65,11 @@ void gotKlikAanKlikUitCode(NewRemoteCode receivedCode) {
       switch (receivedCode.switchType) {
           case NewRemoteCode::off:
             digitalWrite(LED_BUILTIN, LOW);   // turn the LED on (HIGH is the voltage level)
-            Serial.print(" off");
+            Serial.println(" off");
             break;
           case NewRemoteCode::on:
             digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
-            Serial.print(" on");
+            Serial.println(" on");
             break;
           case NewRemoteCode::dim:
             Serial.print(" dim");
