@@ -35,7 +35,7 @@
 #include <ESP8266WebServer.h>
 
 /* Set these to your desired credentials. */
-const char *ssid = "Stofkat Home Automation";
+const char *ssid = "ESPap";
 const char *password = "thereisnospoon";
 
 ESP8266WebServer server(80);
@@ -44,37 +44,27 @@ ESP8266WebServer server(80);
  * connected to this access point to see it.
  */
 void handleRoot() {
-  server.send(200, "text/html", "<h1>You are connected</h1>");
+	server.send(200, "application/json", "<h1>You are connected</h1>");
 }
 
-void handleRFScanMode(){
-    isMappingSignal=true;
-    server.send(200, "text/html", "<h1>Scanning for new RF signal..</h1>");
-}
+void setup() {
+	delay(1000);
+	Serial.begin(115200);
+	Serial.println();
+	Serial.print("Configuring access point...");
+	/* You can remove the password parameter if you want the AP to be open. */
+	WiFi.softAP(ssid, password);
 
-void handleWifiConnect() {
-    Serial.println("handleWifiConnect ");
-    Serial.println(server.arg("ssid"));
- }
-
-void wifi_module_start() {
-  delay(1000);
-  Serial.println("Configuring access point...");
-  /* You can remove the password parameter if you want the AP to be open. */
-  //WiFi.softAP(ssid, password);
-  WiFi.begin("Why not Zoidberg?", "br00dr00ster");
-  IPAddress myIP = WiFi.localIP();
+	IPAddress myIP = WiFi.softAPIP();
+ WiFi.
+	Serial.print("AP IP address: ");
+	Serial.println(myIP);
+	server.on("/", handleRoot);
  
-  Serial.print("AP IP address: ");
-  Serial.println(myIP);
-  server.on("/", handleRoot);
-  server.on("/rf_scan", handleRFScanMode);
-  server.on("/wifi_connect", handleWifiConnect);
-
-  server.begin();
-  Serial.println("HTTP server started");
+	server.begin();
+	Serial.println("HTTP server started");
 }
 
-void wifi_module_handle_client() {
-  server.handleClient();
+void loop() {
+	server.handleClient();
 }
