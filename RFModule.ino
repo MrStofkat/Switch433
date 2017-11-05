@@ -3,7 +3,8 @@
 #include <EEPROM.h>
 
 
-bool isMappingSignal=true;
+bool hasPendingDevice=true;
+const char *pendingDeviceName;
 long storedAddress =0;
 int storedUnit=0;
 bool rf_module_is_running =false;
@@ -26,13 +27,16 @@ void rf_module_start(){
     if(storedAddress>0){
       Serial.println("Got stored address");
       Serial.println(storedAddress);
-      isMappingSignal=false;
+      hasPendingDevice=false;
     }else {
       Serial.println("Aint got stored address");
     }
 } 
 
-
+void rf_sendSignal(int deviceID, boolean signal) {
+   //Device device = controller.devices[deviceID];
+   //TODO
+}
 
 // Callback function is called only when a valid code is received.
 void gotUniversalCode(unsigned long receivedCode, unsigned int period) {
@@ -51,13 +55,14 @@ void gotUniversalCode(unsigned long receivedCode, unsigned int period) {
 void gotKlikAanKlikUitCode(NewRemoteCode receivedCode) {
   
   // Note: interrupts are disabled. You can re-enable them if needed.
-  if(isMappingSignal){
+  if(hasPendingDevice){
       Serial.println("Stored new address");
       storedAddress = receivedCode.address;
       storedUnit = receivedCode.unit;
       EEPROMWriteLong(0,storedAddress); 
       EEPROM.write(4,storedUnit);
-      isMappingSignal=false;
+      hasPendingDevice=false;
+      //addDevice(pendingDeviceName, address, unit);
       return;
   }
   

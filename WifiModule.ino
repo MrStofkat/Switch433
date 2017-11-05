@@ -48,28 +48,71 @@ void handleRoot() {
 }
 
 void handleRFScanMode(){
-    isMappingSignal=true;
+    hasPendingDevice=true;
     server.send(200, "text/html", "<h1>Scanning for new RF signal..</h1>");
 }
 
 void handleWifiConnect() {
     Serial.println("handleWifiConnect ");
-    Serial.println(server.arg("ssid"));
+    Serial.println(server.arg("plain"));
+    DynamicJsonBuffer  jsonBuffer;
+    JsonObject& root = jsonBuffer.parseObject(server.arg("plain"));
+    if (!root.success()) {
+      Serial.println("parsing JSON failed!");
+    }
+    server.send(200, "application/json", "{\"message\": \"Now connecting to the WiFi network\"}");
+    const char * ssid = root["ssid"];
+    const char * password = root["password"];
+    Serial.println(password);
+    Serial.println("handleWifiConnect END");
+    WiFi.begin(ssid,password);
+}
+
+
+void handleSetDevice() {
+    Serial.println("handleSetDevice ");
+    Serial.println(server.arg("plain"));
+    StaticJsonBuffer<200> jsonBuffer;
+    JsonObject& root = jsonBuffer.parseObject(server.arg("plain"));
+    int deviceID = root["deviceID"];
+    boolean state = root["state"];
+    rf_sendSignal(deviceID, state);
  }
+
+void handleAddDevice() {
+    Serial.println("handleWifiConnect ");
+    Serial.println(server.arg("plain"));
+    StaticJsonBuffer<200> jsonBuffer;
+    JsonObject& root = jsonBuffer.parseObject(server.arg("json"));
+    server.send(200, "application/json", "{\"message\": \"Scanning for new RF433 signal\"}");
+    hasPendingDevice = true;
+    pendingDeviceName = root["name"];
+    //addDevice("",2,2);
+}
+
+void handleWifiDisconnect() {
+    Serial.println("handleWifiDisconnect ");
+    //Serial.println(server.arg("json"));
+    server.send(200, "application/json", "{\"message\": \"Disconnecting from WiFi network\"}");
+    WiFi.softAP(ssid, password);
+}
 
 void wifi_module_start() {
   delay(1000);
   Serial.println("Configuring access point...");
   /* You can remove the password parameter if you want the AP to be open. */
-  //WiFi.softAP(ssid, password);
-  WiFi.begin("Why not Zoidberg?", "br00dr00ster");
-  IPAddress myIP = WiFi.localIP();
+  WiFi.softAP(ssid, password);
+  //WiFi.begin("Why not Zoidberg?", "br00dr00ster");
+  //IPAddress myIP = WiFi.localIP();
  
-  Serial.print("AP IP address: ");
-  Serial.println(myIP);
+  //Serial.print("AP IP address: ");
+  //Serial.println(myIP);
   server.on("/", handleRoot);
   server.on("/rf_scan", handleRFScanMode);
-  server.on("/wifi_connect", handleWifiConnect);
+  server.on("/wifi_connect", HTTP_POST,handleWifiConnect);
+  server.on("/wifi_disconnect", handleWifiDisconnect);
+  server.on("/device_add", HTTP_POST, handleAddDevice);
+  server.on("/device_set", HTTP_POST,handleSetDevice);
 
   server.begin();
   Serial.println("HTTP server started");
