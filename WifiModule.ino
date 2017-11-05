@@ -35,8 +35,8 @@
 #include <ESP8266WebServer.h>
 
 /* Set these to your desired credentials. */
-const char *ssid = "Stofkat Home Automation";
-const char *password = "thereisnospoon";
+const char *ap_ssid = "Stofkat Home Automation";
+const char *ap_password = "thereisnospoon";
 
 ESP8266WebServer server(80);
 
@@ -63,11 +63,24 @@ void handleWifiConnect() {
     server.send(200, "application/json", "{\"message\": \"Now connecting to the WiFi network\"}");
     const char * ssid = root["ssid"];
     const char * password = root["password"];
-    Serial.println(password);
     Serial.println("handleWifiConnect END");
     WiFi.begin(ssid,password);
+    config_storeWifiCredentials(ssid, password);
+    Serial.println(configuration.ssid);
 }
 
+void handleReadTest() {
+    Serial.println("handleSetDevice ");
+    Serial.println(server.arg("plain"));
+    StaticJsonBuffer<200> jsonBuffer;
+    JsonObject& root = jsonBuffer.parseObject(server.arg("plain"));
+    int deviceID = root["deviceID"];
+    boolean state = root["state"];
+    Serial.print("ssid: ");
+    Serial.println(configuration.ssid);
+    Serial.print("password string: ");
+    Serial.println(configuration.password);
+ }
 
 void handleSetDevice() {
     Serial.println("handleSetDevice ");
@@ -79,8 +92,18 @@ void handleSetDevice() {
     rf_sendSignal(deviceID, state);
  }
 
+ 
+void handleRemoveDevice() {
+    Serial.println("handleRemoveDevice ");
+    Serial.println(server.arg("plain"));
+    StaticJsonBuffer<200> jsonBuffer;
+    JsonObject& root = jsonBuffer.parseObject(server.arg("json"));
+    server.send(200, "application/json", "{\"message\": \"Removing device\"}");
+    int deviceID = root["deviceID"];
+}
+
 void handleAddDevice() {
-    Serial.println("handleWifiConnect ");
+    Serial.println("handleAddDevice ");
     Serial.println(server.arg("plain"));
     StaticJsonBuffer<200> jsonBuffer;
     JsonObject& root = jsonBuffer.parseObject(server.arg("json"));
@@ -94,15 +117,23 @@ void handleWifiDisconnect() {
     Serial.println("handleWifiDisconnect ");
     //Serial.println(server.arg("json"));
     server.send(200, "application/json", "{\"message\": \"Disconnecting from WiFi network\"}");
-    WiFi.softAP(ssid, password);
+    WiFi.softAP(ap_ssid, ap_password);
 }
 
-void wifi_module_start() {
+void wifi_init() {
   delay(1000);
   Serial.println("Configuring access point...");
   /* You can remove the password parameter if you want the AP to be open. */
-  WiFi.softAP(ssid, password);
-  //WiFi.begin("Why not Zoidberg?", "br00dr00ster");
+  if(configuration.password !=NULL && sizeof(configuration.password)>0) {
+     Serial.println("Found stored WiFi credentials..");
+     //Serial.println(configuration.password);
+     Serial.println(configuration.password);
+     WiFi.begin(configuration.ssid,configuration.password);
+  } else {
+     Serial.println("No stored WiFi credentials found.");
+  }
+  WiFi.softAP(ap_ssid, ap_password);
+  WiFi.begin("Why not Zoidberg?", "br00dr00ster");
   //IPAddress myIP = WiFi.localIP();
  
   //Serial.print("AP IP address: ");
@@ -112,12 +143,14 @@ void wifi_module_start() {
   server.on("/wifi_connect", HTTP_POST,handleWifiConnect);
   server.on("/wifi_disconnect", handleWifiDisconnect);
   server.on("/device_add", HTTP_POST, handleAddDevice);
+  server.on("/device_remove", HTTP_POST, handleRemoveDevice);
   server.on("/device_set", HTTP_POST,handleSetDevice);
-
+  server.on("/read_test", HTTP_POST,handleReadTest);
   server.begin();
+  
   Serial.println("HTTP server started");
 }
 
-void wifi_module_handle_client() {
+void wifi_handle_client() {
   server.handleClient();
 }
