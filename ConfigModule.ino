@@ -4,7 +4,7 @@
 
 //Describes a device
 struct Device {
-   String deviceName;
+   const char * deviceName;
    long address;
    int unit;
    int period;
@@ -37,7 +37,7 @@ void config_storeWifiCredentials(const char * ssid, const char * password) {
 }
 
 void config_addDevice(const char * deviceName, long address, int unit, int period) {
-  configuration.devices[configuration.deviceCount++] = {deviceName, address, unit, period};
+  configuration.devices[configuration.deviceCount++] = (Device){deviceName, address, unit, period};
   //_config_save();
 }
 

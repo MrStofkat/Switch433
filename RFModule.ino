@@ -24,9 +24,13 @@ void rf_init(){
 } 
 
 void rf_sendSignal(int deviceID, boolean state) {
-    Device device = configuration.devices[deviceID];
-    NewRemoteTransmitter transmitter(device.address, 11, device.period);
-    transmitter.sendUnit(device.unit, state);
+  Device device = configuration.devices[deviceID];
+  NewRemoteReceiver::disable();
+  NewRemoteTransmitter transmitter(device.address, 13, device.period);
+  transmitter.sendUnit(device.unit, state);
+  interrupts();
+  delay(100);
+  NewRemoteReceiver::enable();
 }
 
 // Callback function is called only when a valid code is received.

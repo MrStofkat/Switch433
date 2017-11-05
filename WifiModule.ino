@@ -86,10 +86,12 @@ void handleSetDevice() {
     Serial.println("handleSetDevice ");
     Serial.println(server.arg("plain"));
     StaticJsonBuffer<200> jsonBuffer;
+    server.send(200, "application/json", "{\"message\": \"Sending signal\"}");
     JsonObject& root = jsonBuffer.parseObject(server.arg("plain"));
     int deviceID = root["deviceID"];
     boolean state = root["state"];
     rf_sendSignal(deviceID, state);
+
  }
 
  
@@ -128,6 +130,7 @@ void wifi_init() {
      Serial.println("Found stored WiFi credentials..");
      Serial.println(configuration.ssid);
      Serial.println(configuration.password);
+     WiFi.begin(configuration.ssid,configuration.password);
   } else {
      Serial.println("No stored WiFi credentials found.");
   }
