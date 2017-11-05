@@ -37,7 +37,8 @@ void config_storeWifiCredentials(const char * ssid, const char * password) {
 }
 
 void config_addDevice(const char * deviceName, long address, int unit, int period) {
-
+  configuration.devices[configuration.deviceCount++] = {deviceName, address, unit, period};
+  //_config_save();
 }
 
 bool _config_load() {
@@ -79,11 +80,21 @@ bool _config_load() {
 }
 
 bool _config_save() {
-  StaticJsonBuffer<200> jsonBuffer;
+  DynamicJsonBuffer jsonBuffer;
   JsonObject& json = jsonBuffer.createObject();
   json["ssid"] = configuration.ssid;
   json["password"] = configuration.password;
-
+//  JsonArray& devices = json.createNestedArray("devices");
+//  
+//  for(int i=0; i<configuration.deviceCount; i++) {
+//    JsonObject& device = jsonBuffer.createObject();
+//    device["name"] = configuration.devices[i].deviceName;
+//    device["address"] = configuration.devices[i].address;
+//    device["unit"] = configuration.devices[i].unit;
+//    device["period"] = configuration.devices[i].period;
+//    devices.add(device);
+//  }
+  
   File configFile = SPIFFS.open("/config.json", "w");
   if (!configFile) {
     Serial.println("Failed to open config file for writing");

@@ -8,7 +8,7 @@ void setup() {
   Serial.begin(115200);//for debugging purposes.
   config_init();
   wifi_init();
-  rf_module_start();
+  rf_init();
 }
 
 void loop() {

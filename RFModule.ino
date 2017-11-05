@@ -1,14 +1,15 @@
 #include <NewRemoteReceiver.h>
 #include <RemoteReceiver.h>
+#include <NewRemoteTransmitter.h>
 
 
-bool hasPendingDevice=true;
+bool hasPendingDevice=false;
 const char *pendingDeviceName;
 long storedAddress =0;
 int storedUnit=0;
 bool rf_module_is_running =false;
 
-void rf_module_start(){
+void rf_init(){
   
     // Initialize receiver on interrupt 0 (= digital pin 2), calls the callback "showCode"
     // after 2 identical codes have been received in a row. (thus, keep the button pressed
@@ -22,10 +23,10 @@ void rf_module_start(){
    
 } 
 
-void rf_sendSignal(int deviceID, boolean signal) {
-    //NewRemoteTransmitter transmitter(receivedCode.address, 11, receivedCode.period);
-   //Device device = controller.devices[deviceID];
-   //TODO
+void rf_sendSignal(int deviceID, boolean state) {
+    Device device = configuration.devices[deviceID];
+    NewRemoteTransmitter transmitter(device.address, 11, device.period);
+    transmitter.sendUnit(device.unit, state);
 }
 
 // Callback function is called only when a valid code is received.
@@ -43,12 +44,10 @@ void gotUniversalCode(unsigned long receivedCode, unsigned int period) {
 
 // Callback function is called only when a valid code is received.
 void gotKlikAanKlikUitCode(NewRemoteCode receivedCode) {
-  
+    Serial.println("Got RF signal");
   // Note: interrupts are disabled. You can re-enable them if needed.
   if(hasPendingDevice){
       Serial.println("Stored new address");
-      storedAddress = receivedCode.address;
-      storedUnit = receivedCode.unit;
       hasPendingDevice=false;
       config_addDevice(pendingDeviceName, receivedCode.address, receivedCode.unit, receivedCode.period);
       return;

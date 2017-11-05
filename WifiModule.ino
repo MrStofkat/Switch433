@@ -126,16 +126,14 @@ void wifi_init() {
   /* You can remove the password parameter if you want the AP to be open. */
   if(configuration.password !=NULL && sizeof(configuration.password)>0) {
      Serial.println("Found stored WiFi credentials..");
-     //Serial.println(configuration.password);
+     Serial.println(configuration.ssid);
      Serial.println(configuration.password);
-     WiFi.begin(configuration.ssid,configuration.password);
   } else {
      Serial.println("No stored WiFi credentials found.");
   }
   WiFi.softAP(ap_ssid, ap_password);
-  WiFi.begin("Why not Zoidberg?", "br00dr00ster");
   //IPAddress myIP = WiFi.localIP();
- 
+
   //Serial.print("AP IP address: ");
   //Serial.println(myIP);
   server.on("/", handleRoot);
