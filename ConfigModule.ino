@@ -1,22 +1,23 @@
 #include <ArduinoJson.h>
 #include "FS.h"
 
+////Describes a device
+//struct Device {
+//   const char * deviceName;
+//   long address;
+//   int unit;
+//   int period;
+//};
+//
+////Describes the actual configuration structure
+//struct Configuration {
+//  const char * ssid;
+//  const char * password;
+//  int deviceCount;
+//  Device devices[20];
+//} configuration;
 
-//Describes a device
-struct Device {
-   const char * deviceName;
-   long address;
-   int unit;
-   int period;
-};
-
-//Describes the actual configuration structure
-struct Configuration {
-  const char * ssid;
-  const char * password;
-  int deviceCount;
-  Device devices[20];
-} configuration;
+Configuration configuration;
 
 void config_init() {
 
@@ -28,19 +29,6 @@ void config_init() {
     _config_load();  
   } 
 }
-
-
-void config_storeWifiCredentials(const char * ssid, const char * password) {
-  configuration.ssid = ssid;
-  configuration.password = password;
-  _config_save();
-}
-
-void config_addDevice(const char * deviceName, long address, int unit, int period) {
-  configuration.devices[configuration.deviceCount++] = (Device){deviceName, address, unit, period};
-  //_config_save();
-}
-
 bool _config_load() {
   File configFile = SPIFFS.open("/config.json", "r");
   if (!configFile) {
@@ -49,10 +37,10 @@ bool _config_load() {
   }
 
   size_t size = configFile.size();
-  if (size > 1024) {
-    Serial.println("Config file size is too large");
-    return false;
-  }
+//  if (size > 1024) {
+//    Serial.println("Config file size is too large");
+//    return false;
+//  }
 
   // Allocate a buffer to store contents of the file.
   std::unique_ptr<char[]> buf(new char[size]);
@@ -69,9 +57,8 @@ bool _config_load() {
     Serial.println("Failed to parse config file");
     return false;
   }
-
-  configuration.ssid = json["ssid"];
-  configuration.password = json["password"];
+  configuration.ssid = "" + json["ssid"].as<String>();
+  configuration.password = "" + json["password"].as<String>();
   Serial.print("Loaded ssid: ");
   Serial.println(configuration.ssid);
   Serial.print("Loaded password: ");
@@ -79,21 +66,40 @@ bool _config_load() {
   return true;
 }
 
+
+void config_storeWifiCredentials(String ssid, String password) {
+  configuration.ssid = ssid;
+  configuration.password = password;
+  _config_save();
+}
+
+void config_addDevice(String deviceName, long address, int unit, int period) {
+  configuration.devices[configuration.deviceCount++] = (Device){deviceName, address, unit, period};
+  _config_save();
+}
+
+
 bool _config_save() {
   DynamicJsonBuffer jsonBuffer;
   JsonObject& json = jsonBuffer.createObject();
   json["ssid"] = configuration.ssid;
   json["password"] = configuration.password;
-//  JsonArray& devices = json.createNestedArray("devices");
-//  
-//  for(int i=0; i<configuration.deviceCount; i++) {
-//    JsonObject& device = jsonBuffer.createObject();
-//    device["name"] = configuration.devices[i].deviceName;
-//    device["address"] = configuration.devices[i].address;
-//    device["unit"] = configuration.devices[i].unit;
-//    device["period"] = configuration.devices[i].period;
-//    devices.add(device);
-//  }
+
+  if(configuration.deviceCount>0) {
+    Serial.println("createNestedArray ");
+    JsonArray& devices = json.createNestedArray("devices");
+    for(int i=0; i<configuration.deviceCount; i++) {
+      Serial.println("createObject ");
+      JsonObject& device = jsonBuffer.createObject();
+      Serial.println("device[name]");
+      device["name"] = configuration.devices[i].deviceName;
+      device["address"] = configuration.devices[i].address;
+      device["unit"] = configuration.devices[i].unit;
+      device["period"] = configuration.devices[i].period;
+      Serial.println("devices.add(device)");
+      devices.add(device);
+    }
+  }
   
   File configFile = SPIFFS.open("/config.json", "w");
   if (!configFile) {

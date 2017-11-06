@@ -44,7 +44,7 @@ ESP8266WebServer server(80);
  * connected to this access point to see it.
  */
 void handleRoot() {
-  server.send(200, "text/html", "<h1>You are connected</h1>");
+  server.send(200, "text/html", "<marquee>You are connected</marquee><br/><marquee>to the most awesome</marquee><br/><marquee>home automation system in existance!</marquee>");
 }
 
 void handleRFScanMode(){
@@ -61,10 +61,10 @@ void handleWifiConnect() {
       Serial.println("parsing JSON failed!");
     }
     server.send(200, "application/json", "{\"message\": \"Now connecting to the WiFi network\"}");
-    const char * ssid = root["ssid"];
-    const char * password = root["password"];
+    String ssid = root["ssid"].as<String>();
+    String password = root["password"].as<String>();
     Serial.println("handleWifiConnect END");
-    WiFi.begin(ssid,password);
+    WiFi.begin(ssid.c_str(),password.c_str());
     config_storeWifiCredentials(ssid, password);
     Serial.println(configuration.ssid);
 }
@@ -91,8 +91,7 @@ void handleSetDevice() {
     int deviceID = root["deviceID"];
     boolean state = root["state"];
     rf_sendSignal(deviceID, state);
-
- }
+}
 
  
 void handleRemoveDevice() {
@@ -111,8 +110,24 @@ void handleAddDevice() {
     JsonObject& root = jsonBuffer.parseObject(server.arg("json"));
     server.send(200, "application/json", "{\"message\": \"Scanning for new RF433 signal\"}");
     hasPendingDevice = true;
-    pendingDeviceName = root["name"];
+    pendingDeviceName = root["name"].as<String>();
     //addDevice("",2,2);
+}
+
+void handleListDevices() {
+  //It is normally bad practice to compile your own JSON
+  //but in this case it saved a lot of memory on the uC
+  //plus it significantly speeds up the process
+  String devicesJSON ="[";
+  for(int i=0; i<configuration.deviceCount; i++){
+    devicesJSON += "{"
+    devicesJSON += "\"id\": \"" + configuration.devices[i].id + "\","
+    devicesJSON += "\"deviceName\": \"" + configuration.devices[i].deviceName + "\","
+    devicesJSON += "\"lastPosition\": \"" + configuration.devices[i].lastPosition + "\""
+    devicesJSON +="}"
+  }
+
+  devicesJSON += "]";
 }
 
 void handleWifiDisconnect() {
@@ -124,32 +139,34 @@ void handleWifiDisconnect() {
 
 void wifi_init() {
   delay(1000);
-  Serial.println("Configuring access point...");
-  /* You can remove the password parameter if you want the AP to be open. */
   if(configuration.password !=NULL && sizeof(configuration.password)>0) {
      Serial.println("Found stored WiFi credentials..");
      Serial.println(configuration.ssid);
      Serial.println(configuration.password);
-     WiFi.begin(configuration.ssid,configuration.password);
+     WiFi.begin(configuration.ssid.c_str(),configuration.password.c_str());
   } else {
      Serial.println("No stored WiFi credentials found.");
+     Serial.println("Configuring access point...");
+
   }
   WiFi.softAP(ap_ssid, ap_password);
   //IPAddress myIP = WiFi.localIP();
-
   //Serial.print("AP IP address: ");
   //Serial.println(myIP);
+  
   server.on("/", handleRoot);
   server.on("/rf_scan", handleRFScanMode);
   server.on("/wifi_connect", HTTP_POST,handleWifiConnect);
   server.on("/wifi_disconnect", handleWifiDisconnect);
   server.on("/device_add", HTTP_POST, handleAddDevice);
   server.on("/device_remove", HTTP_POST, handleRemoveDevice);
+  server.on("/device_list", HTTP_GET, handleListDevices);
+
   server.on("/device_set", HTTP_POST,handleSetDevice);
   server.on("/read_test", HTTP_POST,handleReadTest);
   server.begin();
   
-  Serial.println("HTTP server started");
+  Serial.println("HTTP server started!");
 }
 
 void wifi_handle_client() {

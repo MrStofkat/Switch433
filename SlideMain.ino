@@ -3,7 +3,7 @@
 */
 #include <NewRemoteReceiver.h>
 #include <RemoteReceiver.h>
-
+#include "Configuration.h"
 void setup() {
   Serial.begin(115200);//for debugging purposes.
   config_init();

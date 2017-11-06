@@ -4,7 +4,7 @@
 
 
 bool hasPendingDevice=false;
-const char *pendingDeviceName;
+String pendingDeviceName;
 long storedAddress =0;
 int storedUnit=0;
 bool rf_module_is_running =false;
