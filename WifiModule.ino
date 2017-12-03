@@ -111,23 +111,23 @@ void handleAddDevice() {
     server.send(200, "application/json", "{\"message\": \"Scanning for new RF433 signal\"}");
     hasPendingDevice = true;
     pendingDeviceName = root["name"].as<String>();
-    //addDevice("",2,2);
 }
 
 void handleListDevices() {
-  //It is normally bad practice to compile your own JSON
+  //It is generally bad practice to compile your own JSON
   //but in this case it saved a lot of memory on the uC
   //plus it significantly speeds up the process
   String devicesJSON ="[";
   for(int i=0; i<configuration.deviceCount; i++){
-    devicesJSON += "{"
-    devicesJSON += "\"id\": \"" + configuration.devices[i].id + "\","
-    devicesJSON += "\"deviceName\": \"" + configuration.devices[i].deviceName + "\","
-    devicesJSON += "\"lastPosition\": \"" + configuration.devices[i].lastPosition + "\""
-    devicesJSON +="}"
-  }
+    devicesJSON += "{";
+    devicesJSON += "\"id\": \"" + configuration.devices[i].id + "\",";
+    devicesJSON += "\"name\": \"" + configuration.devices[i].deviceName + "\",";
+    devicesJSON += "\"lastPosition\": \"" + configuration.devices[i].lastPosition + "\"";
+    devicesJSON += i < configuration.deviceCount ? "}," : "}";
+}
 
   devicesJSON += "]";
+  server.send(200, "application/json", devicesJSON);
 }
 
 void handleWifiDisconnect() {
