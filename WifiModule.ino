@@ -119,11 +119,11 @@ void handleListDevices() {
   //plus it significantly speeds up the process
   String devicesJSON ="[";
   for(int i=0; i<configuration.deviceCount; i++){
-    devicesJSON += "{";
-    devicesJSON += "\"id\": \"" + configuration.devices[i].id + "\",";
-    devicesJSON += "\"name\": \"" + configuration.devices[i].deviceName + "\",";
-    devicesJSON += "\"lastPosition\": \"" + configuration.devices[i].lastPosition + "\"";
-    devicesJSON += i < configuration.deviceCount ? "}," : "}";
+//    devicesJSON += "{";
+//    devicesJSON += "\"id\": \"" + configuration.devices[i].id + "\",";
+//    devicesJSON += "\"name\": \"" + configuration.devices[i].deviceName + "\",";
+//    devicesJSON += "\"lastPosition\": \"" + configuration.devices[i].lastPosition + "\"";
+//    devicesJSON += i < configuration.deviceCount ? "}," : "}";
 }
 
   devicesJSON += "]";
