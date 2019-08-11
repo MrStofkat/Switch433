@@ -14,10 +14,10 @@ const char* streamId   = "....................";
 const char* privateKey = "....................";
 String WEATHER_LOCATION = "Amsterdam,nl";
 String WEATHER_API_KEY = "a5e048469742be59ef9836e97e6afaf7";
+
 void weather_setup() {
 
 }
-
 
 void weather_getCurrent() {
 
@@ -55,8 +55,6 @@ void weather_getCurrent() {
   while (client.available()) {
     line = client.readStringUntil('\r');
     Serial.println(line);
-//    pendingDeviceName = root["name"].as<String>();
-
   }
   StaticJsonBuffer<1200> jsonBuffer;
   //"{"coord":{"lon":4.89,"lat":52.37},"weather":[{"id":741,"main":"Fog","description":"fog","icon":"50d"}],"base":"stations","main":{"temp":276.19,"pressure":1009,"humidity":100,"temp_min":275.15,"temp_max":277.15},"visibility":200,"wind":{"speed":3.1,"deg":140},"clouds":{"all":90},"dt":1544966820,"sys":{"type":1,"id":1524,"message":0.0041,"country":"NL","sunrise":1544946315,"sunset":1544974037},"id":2759794,"name":"Amsterdam","cod":200}";
@@ -67,25 +65,19 @@ void weather_getCurrent() {
   if (weatherType < 600) {
     //Rain
     Serial.println("Rain");
-    led_blue();
   } else if (weatherType >= 600 && weatherType < 700) {
     //Snow
     Serial.println("Snow");
-    led_christmasMode = true;
   } else if (weatherType >= 700 && weatherType < 800) {
     //Weird atmosphere
     Serial.println("Weird");
-    led_red();
   } else if (weatherType == 800 || weatherType == 801) {
     //Clear
     Serial.println("Clear");
-    led_yellow();
   } else if((weatherType >= 701 && weatherType < 721) || weatherType > 801 ) {
     //clouds
     Serial.println("Clouds");
-    led_white();
   }
     
   Serial.println("closing connection");
 }
-

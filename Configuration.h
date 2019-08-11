@@ -1,9 +1,9 @@
 struct Device {
-   String deviceName;
-   int id;
-   long address;
-   int unit;
-   int period;
+  unsigned long address;
+  unsigned long unit;
+  unsigned long period;
+  boolean lastState;
+  String deviceName;
 };
 
 //Describes the actual configuration structure
@@ -12,4 +12,4 @@ typedef struct Configuration {
   String password;
   int deviceCount;
   Device devices[20];
-} ;
+};
