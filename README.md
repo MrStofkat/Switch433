@@ -1,4 +1,4 @@
-# Switch433
+# Switch433SP
 IoT RF control server for a range of standard 433mhz protocols. This can run on any ESP8266 device. Make sure to check for the correct pinout. 
 
 ## Module structure
